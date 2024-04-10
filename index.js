@@ -2,7 +2,9 @@ const express = require("express")
 const port = 8000;
 const users = require("./MOCK_DATA.json")
 const app = express();
+const fs = require("fs")
 
+app.use(express.urlencoded({ extended: false }));
 app.get("/users", (req, res) => {
     return res.json(users);
 })
@@ -17,6 +19,14 @@ app.route("/users/:id").get((req, res) => {
 }).delete((req, res) => {
     // todo: delete user with id
     return res.json({ status: "Panding" })
+})
+
+app.post("/users/", (req, res) => {
+    const body = req.body;
+    users.push({ ...body, id: users.length + 1 })
+    fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (req, data) => {
+        return res.json({ status: "sucssess", id: users.length });
+    })
 })
 
 app.listen(port, () => {
