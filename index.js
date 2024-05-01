@@ -17,6 +17,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/users", (req, res) => {
+  res.setHeader("X-myName", "Rushi Panchal"); // Custom header
   return res.json(users);
 });
 
