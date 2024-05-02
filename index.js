@@ -6,18 +6,18 @@ const fs = require("fs");
 
 app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
-  console.log("hello from middleware 1");
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log("hello from middleware 1");
+//   next();
+// });
 
-app.use((req, res, next) => {
-  console.log("hello from middleware 2");
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log("hello from middleware 2");
+//   next();
+// });
 
 app.get("/users", (req, res) => {
-  res.setHeader("X-myName", "Rushi Panchal"); // Custom header
+  res.setHeader("X-`myName", "Rushi Panchal"); // Custom header
   return res.json(users);
 });
 
@@ -41,7 +41,7 @@ app.post("/users/", (req, res) => {
   const body = req.body;
   users.push({ ...body, id: users.length + 1 });
   fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (req, data) => {
-    return res.json({ status: "sucssess", id: users.length });
+    return res.status(201).json({ status: "sucssess", id: users.length }); // Added status `201(created)`
   });
 });
 
