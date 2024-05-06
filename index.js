@@ -1,8 +1,16 @@
 const express = require("express");
 const port = 8000;
-const users = require("./MOCK_DATA.json");
 const app = express();
 const fs = require("fs");
+const { default: mongoose } = require("mongoose");
+
+// Connect mongoDB
+mongoose
+  .connect("mongodb://127.0.0.1:27017/TestDatabase")
+  .then(() => {
+    console.log("MongoDB Connected");
+  })
+  .catch((err) => console.log("Error: ", err));
 
 app.use(express.urlencoded({ extended: false }));
 
@@ -16,16 +24,43 @@ app.use(express.urlencoded({ extended: false }));
 //   next();
 // });
 
-app.get("/users", (req, res) => {
-  res.setHeader("X-`myName", "Rushi Panchal"); // Custom header
-  return res.json(users);
+// mongoDB Schema Structure
+const usersSchemaStructure = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      require: true,
+    },
+    lastName: {
+      type: String,
+    },
+    email: {
+      type: String,
+      require: true,
+      unique: true,
+    },
+  },
+  { timestamps: true }
+);
+
+// mongoDB Schema Model
+const usersInfoModel = mongoose.model("users", usersSchemaStructure);
+
+app.get("/users",async (req, res) => {
+  // res.setHeader("X-`myName", "Rushi Panchal"); // Custom header
+  const allDBusers = await usersInfoModel.find({});
+  const html = `
+    <ul>
+      ${allDBusers.map((user) => `<li>${user.firstName} - email: ${user.email}</li>`).join("")}
+    </ul>
+  `
+  return res.send(html);
 });
 
 app
   .route("/users/:id")
-  .get((req, res) => {
-    const userId = Number(req.params.id);
-    const user = users.find((user) => user.id === userId);
+  .get(async (req, res) => {
+    const user = await usersInfoModel.findById(req.params.id);
     return res.json(user);
   })
   .patch((req, res) => {
@@ -37,12 +72,13 @@ app
     return res.json({ status: "Panding" });
   });
 
-app.post("/users/", (req, res) => {
-  const body = req.body;
-  users.push({ ...body, id: users.length + 1 });
-  fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (req, data) => {
-    return res.status(201).json({ status: "sucssess", id: users.length }); // Added status `201(created)`
+app.post("/users/", async (req, res) => {
+  const usersData = await usersInfoModel.create({
+    firstName: req.body.first_Name,
+    lastName: req.body.last_Name,
+    email: req.body.email,
   });
+  return res.status(201).json({ msg: "User Added Successfully" });
 });
 
 app.listen(port, () => {
